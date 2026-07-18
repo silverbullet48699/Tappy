@@ -21,7 +21,7 @@ struct ContentView: View {
                 
                 
                 Tab("Calender", systemImage: "calendar"){
-                    HomeView()
+                    CalenderIView()
                 }
                 
                 
