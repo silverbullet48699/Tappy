@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ContentView: View {
     var body: some View {
-        VStack {
+
             TabView{
                 
                 Tab("Home", systemImage: "house.fill"){
@@ -27,8 +27,7 @@ struct ContentView: View {
                 
                 
             }
-        }
-        .padding()
+    
     }
 }
 
