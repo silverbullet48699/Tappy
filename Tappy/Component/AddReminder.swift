@@ -58,6 +58,7 @@ struct AddReminder: View {
                 List{
                     Picker(selection: $selectedReminderType, label: Text("Reminder Type")){
                         Text("ClockIn").tag(ReminderType.clockin)
+                        Text("ClockOut").tag(ReminderType.clockout)
                     }
                 }
 
