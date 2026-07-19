@@ -64,7 +64,7 @@ struct ReminderDetailSheet: View {
 
                 }
                 
-                .padding()
+                .padding(.horizontal, 30)
                 .navigationTitle(date.formatted(.dateTime.weekday(.wide).month(.wide).day()))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
