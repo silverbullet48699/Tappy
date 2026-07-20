@@ -35,12 +35,12 @@ struct ReminderView: View {
             
             }
             
-            LazyVGrid(columns: columns, spacing: 1) {
-                VStack{
-                        Text(reminderData.first!.name)
-                    
-                }
-            }
+//            LazyVGrid(columns: columns, spacing: 1) {
+//                VStack{
+//                        Text(reminderData.first!.name)
+//                    
+//                }
+//            }
             
             
         }
