@@ -8,6 +8,11 @@
 import SwiftUI
 
 struct ReminderDetailSheet: View {
+    
+    
+    
+    
+    
     let date : Date
     @Environment(\.dismiss) private var dismiss
     // 1. Properties declared at the struct level
