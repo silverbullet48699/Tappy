@@ -35,12 +35,19 @@ struct ReminderView: View {
             
             }
             
-//            LazyVGrid(columns: columns, spacing: 1) {
-//                VStack{
-//                        Text(reminderData.first!.name)
-//                    
-//                }
-//            }
+            ScrollView() {
+                
+                LazyVGrid(columns: columns, spacing: 1) {
+                    ForEach(reminderData) { reminder in
+                        VStack{
+                            
+                        }
+                    }
+                    
+                }
+                
+            }
+            
             
             
         }
