@@ -10,6 +10,7 @@ import SwiftData
 
 struct EditReminder: View {
     
+    let reminder: ReminderData
     @Query private var reminderData: [ReminderData]
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
@@ -20,66 +21,46 @@ struct EditReminder: View {
     @State private var newEndTime: Date = Date()
     @State private var newDate: Date = Date()
     @State private var newReminderType: String = ""
-    
-    enum ReminderType: String, CaseIterable, Identifiable {
-        case clockin, clockout
-        var id: Self { self }
-    }
 
+    init(reminder: ReminderData) {
+           self.reminder = reminder
+           _newName = State(initialValue: reminder.ReminderName)
+           _newStartTime = State(initialValue: reminder.startTime)
+           _newEndTime = State(initialValue: reminder.endTime)
+           _newDate = State(initialValue: reminder.date)
+           _selectedReminderType = State(initialValue: ReminderType(rawValue: reminder.typeReminder) ?? .clockin)
+       }
+    
 
     @State private var selectedReminderType: ReminderType = .clockin
     
     
     var body: some View {
         VStack{
-            Text("Edit Tap Reminder")
+            Text("Edit Tap Reminder ok")
             
-            Form{
-                Section(header: Text("Reminder Name:")){
-                    TextField("Enter Reminder", text: $newName)
-                }
-                
-                
-                DatePicker(
-                    "Start Time", selection: $newStartTime, displayedComponents: [.hourAndMinute]
-                   )
-                DatePicker(
-                    "End Time", selection: $newEndTime, displayedComponents: [.hourAndMinute]
-                   )
-//                let newIntervalTime = newEndTime.timeIntervalSince(newStartTime)
-//
-                DatePicker("Date", selection: $newDate, displayedComponents: [.date])
-                
-                
-                
-                List{
-                    Picker(selection: $selectedReminderType, label: Text("Reminder Type")){
-                        Text("ClockIn").tag(ReminderType.clockin)
-                        Text("ClockOut").tag(ReminderType.clockout)
-                    }
-                }
+            ReminderForm(
+                name: $newName,
+                startTime: $newStartTime,
+                endTime: $newEndTime,
+                date: $newDate,
+                reminderType: $selectedReminderType
+            )
 
-            }
+            
             Button("Edit Reminder"){
-                let reminderData:
-                    ReminderData = ReminderData(id: UUID(),
-                    name: newName,
-                    intervalTime: 0,
-                    startTime: newStartTime,
-                    endTime: newEndTime,
-                    date: newDate,
-                    typeReminder: newReminderType)
-              
                 
-                context.insert(reminderData)
+                
+                reminder.ReminderName = newName
+                reminder.startTime = newStartTime
+                reminder.endTime = newEndTime
+                reminder.date = newDate
+                reminder.typeReminder = newReminderType
+                reminder.intervalTime = newEndTime.timeIntervalSince(newStartTime)
+                
+                
                 try? context.save()
                 
-                
-                newName = ""
-                newStartTime = Date()
-                newEndTime = Date()
-                newDate = Date()
-                newReminderType = ""
                 
                 dismiss()
                 
@@ -92,5 +73,12 @@ struct EditReminder: View {
 }
 
 #Preview {
-    EditReminder()
+    EditReminder(reminder: ReminderData(
+        name: "Preview Reminder",
+        intervalTime: 0,
+        startTime: .now,
+        endTime: .now,
+        date: .now,
+        typeReminder: "clockin"
+    ))
 }

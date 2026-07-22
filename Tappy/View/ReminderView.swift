@@ -44,38 +44,58 @@ struct ReminderView: View {
                 ContentUnavailableView("Belum ada Reminder", systemImage: "bell.slash")
                 Spacer()
             } else {
-                List(reminderData) { reminder in
-                    VStack(){
-                        Text(reminder.ReminderName)
-                            .font(.headline)
-                        
-                        Button("edit") {
+                List
+                {
+                    ForEach(reminderData) { reminder in
+                        VStack(){
+                            Text(reminder.ReminderName)
+                                .font(.headline)
                             
+                            Button("edit") {
+                                selectedReminder = reminder
+                                
+                                showingEditReminder.toggle()
+                            }.sheet(isPresented: $showingEditReminder) {
+                                EditReminder(reminder: reminder)
+                                
+                                
+                            }
                             
-                            showingEditReminder.toggle()
-                        }.sheet(isPresented: $showingEditReminder) {
-                            EditReminder()
-                            
-                            
-                        }
-                        
-                        
-                        
-                    }
-                }}
-            
-            
+                            .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                Button(role: .destructive) {
+                                    deleteReminder(reminder)
+                                } label: {
+                                    Label("Delete", systemImage: "trash")
+                                }
+                                
+                                
+                                
+                            }
+                        }}
+                    
+                    
+                    
+                }
+                
+                
+            }
             
         }
         
+        
+       
+        }
+    
+    private func deleteReminder(_ reminder: ReminderData) {
+        context.delete(reminder)
+        try? context.save()
+        
+        
     }
     
-    
 }
     
     
-
-
-#Preview {
-    ReminderView()
-}
+    #Preview {
+        ReminderView()
+    }

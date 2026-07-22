@@ -12,3 +12,8 @@ enum ClockType{
     case clockIn
     case clockOut
 }
+
+enum ReminderType: String, CaseIterable, Identifiable {
+    case clockin, clockout
+    var id: Self { self }
+}

@@ -21,11 +21,6 @@ struct AddReminder: View {
     @State private var newEndTime: Date = Date()
     @State private var newDate: Date = Date()
     @State private var newReminderType: String = ""
-    
-    enum ReminderType: String, CaseIterable, Identifiable {
-        case clockin, clockout
-        var id: Self { self }
-    }
 
 
     @State private var selectedReminderType: ReminderType = .clockin
@@ -35,32 +30,13 @@ struct AddReminder: View {
         VStack{
             Text("New Tap Reminder")
             
-            Form{
-                Section(header: Text("Reminder Name:")){
-                    TextField("Enter Reminder", text: $newName)
-                }
-                
-                
-                DatePicker(
-                    "Start Time", selection: $newStartTime, displayedComponents: [.hourAndMinute]
-                   )
-                DatePicker(
-                    "End Time", selection: $newEndTime, displayedComponents: [.hourAndMinute]
-                   )
-//                let newIntervalTime = newEndTime.timeIntervalSince(newStartTime)
-//                
-                DatePicker("Date", selection: $newDate, displayedComponents: [.date])
-                
-                
-                
-                List{
-                    Picker(selection: $selectedReminderType, label: Text("Reminder Type")){
-                        Text("ClockIn").tag(ReminderType.clockin)
-                        Text("ClockOut").tag(ReminderType.clockout)
-                    }
-                }
-
-            }
+            ReminderForm(
+                name: $newName,
+                startTime: $newStartTime,
+                endTime: $newEndTime,
+                date: $newDate,
+                reminderType: $selectedReminderType
+                        )
             Button("Add Reminder"){
                 let reminderData:
                     ReminderData = ReminderData(id: UUID(),
@@ -83,8 +59,6 @@ struct AddReminder: View {
                 newReminderType = ""
                 
                 dismiss()
-                
-                
                 
                 
             }
