@@ -13,6 +13,8 @@ struct AddReminder: View {
     
     @Query private var reminderData: [ReminderData]
     @Environment(\.modelContext) private var context
+    @Environment(\.dismiss) private var dismiss
+    
     
     @State public var newName: String = ""
     @State private var newIntervalTime: Date = Date()
@@ -36,12 +38,9 @@ struct AddReminder: View {
             
             Form{
                 Section(header: Text("Reminder Name:")){
-                    TextField("Enter Reminder", text: .constant(""))
+                    TextField("Enter Reminder", text: $newName)
                 }
                 
-                Section(header: Text("Reminder Name:")){
-                    TextField("Enter Reminder", text: .constant(""))
-                }
                 
                 DatePicker(
                     "Start Time", selection: $newStartTime, displayedComponents: [.hourAndMinute]
@@ -49,9 +48,9 @@ struct AddReminder: View {
                 DatePicker(
                     "End Time", selection: $newStartTime, displayedComponents: [.hourAndMinute]
                    )
-                let newIntervalTime = newEndTime.timeIntervalSince(newStartTime)
-                
-                DatePicker("Date", selection: .constant(Date()))
+//                let newIntervalTime = newEndTime.timeIntervalSince(newStartTime)
+//                
+                DatePicker("Date", selection: $newDate, displayedComponents: [.date])
                 
                 
                 
@@ -64,9 +63,29 @@ struct AddReminder: View {
 
             }
             Button("Add Reminder"){
-                let newReminderData: ReminderData = ReminderData(name: newName, intervalTime: newIntervalTime, startTime: newStartTime, endTime: newEndTime, date: newDate, typeReminder: newReminderType)
+                let newReminderData:
+                    ReminderData = ReminderData(id: UUID(),
+                    name: newName,
+                    intervalTime: newIntervalTime,
+                    startTime: newStartTime,
+                    endTime: newEndTime,
+                    date: newDate,
+                    typeReminder: newReminderType)
+                
+              
             
                 context.insert(newReminderData)
+                
+           
+                
+                newName = ""
+                newStartTime = Date()
+                newEndTime = Date()
+                newDate = Date()
+                newReminderType = ""
+                
+                dismiss()
+                
             }
                
             
