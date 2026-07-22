@@ -17,7 +17,6 @@ struct AddReminder: View {
     
     
     @State public var newName: String = ""
-    @State private var newIntervalTime: Date = Date()
     @State private var newStartTime: Date = Date()
     @State private var newEndTime: Date = Date()
     @State private var newDate: Date = Date()
@@ -46,7 +45,7 @@ struct AddReminder: View {
                     "Start Time", selection: $newStartTime, displayedComponents: [.hourAndMinute]
                    )
                 DatePicker(
-                    "End Time", selection: $newStartTime, displayedComponents: [.hourAndMinute]
+                    "End Time", selection: $newEndTime, displayedComponents: [.hourAndMinute]
                    )
 //                let newIntervalTime = newEndTime.timeIntervalSince(newStartTime)
 //                
@@ -63,20 +62,19 @@ struct AddReminder: View {
 
             }
             Button("Add Reminder"){
-                let newReminderData:
+                let reminderData:
                     ReminderData = ReminderData(id: UUID(),
                     name: newName,
-                    intervalTime: newIntervalTime,
+                    intervalTime: 0,
                     startTime: newStartTime,
                     endTime: newEndTime,
                     date: newDate,
                     typeReminder: newReminderType)
-                
               
-            
-                context.insert(newReminderData)
                 
-           
+                context.insert(reminderData)
+                try? context.save()
+                
                 
                 newName = ""
                 newStartTime = Date()
@@ -85,6 +83,9 @@ struct AddReminder: View {
                 newReminderType = ""
                 
                 dismiss()
+                
+                
+                
                 
             }
                

@@ -31,44 +31,39 @@ struct ReminderView: View {
             }
             Button("Add"){
                 showingAddReminder.toggle()
-            }
-            
-            }
-            
-            ScrollView() {
-                
-                LazyVGrid(columns: columns, spacing: 1) {
-                    ForEach(reminderData) { reminder in
-                        VStack{
-                            
-                        }
-                    }
+            } .sheet(isPresented: $showingAddReminder) {
+                AddReminder()
                     
-                }
-                
             }
+            
+           
+            }
+            
+            if reminderData.isEmpty {
+                            Spacer()
+                            ContentUnavailableView("Belum ada Reminder", systemImage: "bell.slash")
+                            Spacer()
+            } else {
+                List(reminderData, id: \.id) { reminder in
+                    VStack(){
+                        Text(reminder.ReminderName)
+                            .font(.headline)
+                        
+                        
+                    }
+                }}
             
             
             
         }
-        .frame(maxWidth:.infinity, maxHeight: .infinity, alignment: .topLeading)
-        .padding(.horizontal)
-        
-        .sheet(isPresented: $showingAddReminder) {
-            AddReminder()
-                
+       
         }
 
         
     }
     
-        
-     
     
-    
-    
-    
-}
+
 
 #Preview {
     ReminderView()

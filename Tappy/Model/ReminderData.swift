@@ -14,13 +14,13 @@ import SwiftData
 class ReminderData: Identifiable {
     var id: UUID = UUID()
     var ReminderName: String
-    var intervalTime: Date
+    var intervalTime: TimeInterval
     var startTime: Date
     var endTime: Date
     var date: Date
     var typeReminder: String
     
-    init(id: UUID = UUID(), name: String, intervalTime: Date, startTime: Date, endTime: Date, date: Date, typeReminder: String) {
+    init(id: UUID = UUID(), name: String, intervalTime: TimeInterval, startTime: Date, endTime: Date, date: Date, typeReminder: String) {
         self.id = id
         self.ReminderName = name
         self.intervalTime = intervalTime

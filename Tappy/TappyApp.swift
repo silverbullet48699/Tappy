@@ -13,8 +13,8 @@ struct TappyApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-                .modelContainer(for: ReminderData.self)
             
         }
+        .modelContainer(for: ReminderData.self)
     }
 }
