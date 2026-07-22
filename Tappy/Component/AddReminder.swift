@@ -62,6 +62,8 @@ struct AddReminder: View {
 
             }
             Button("Add Reminder"){
+                
+                
                 let reminderData:
                     ReminderData = ReminderData(id: UUID(),
                     name: newName,

@@ -30,4 +30,9 @@ class ReminderData: Identifiable {
         self.typeReminder = typeReminder
     }
     
+    
+    
+    
 }
+
+
