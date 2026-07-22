@@ -1,15 +1,14 @@
 //
-//  SwiftUIView.swift
+//  Edit Reminder.swift
 //  Tappy
 //
-//  Created by Stephanie Vania Suwardi Data on 20/07/26.
+//  Created by Stephanie Vania Suwardi Data on 22/07/26.
 //
 
 import SwiftUI
 import SwiftData
 
-
-struct AddReminder: View {
+struct EditReminder: View {
     
     @Query private var reminderData: [ReminderData]
     @Environment(\.modelContext) private var context
@@ -33,7 +32,7 @@ struct AddReminder: View {
     
     var body: some View {
         VStack{
-            Text("New Tap Reminder")
+            Text("Edit Tap Reminder")
             
             Form{
                 Section(header: Text("Reminder Name:")){
@@ -48,7 +47,7 @@ struct AddReminder: View {
                     "End Time", selection: $newEndTime, displayedComponents: [.hourAndMinute]
                    )
 //                let newIntervalTime = newEndTime.timeIntervalSince(newStartTime)
-//                
+//
                 DatePicker("Date", selection: $newDate, displayedComponents: [.date])
                 
                 
@@ -61,7 +60,7 @@ struct AddReminder: View {
                 }
 
             }
-            Button("Add Reminder"){
+            Button("Edit Reminder"){
                 let reminderData:
                     ReminderData = ReminderData(id: UUID(),
                     name: newName,
@@ -84,15 +83,7 @@ struct AddReminder: View {
                 
                 dismiss()
                 
-                
-                
-                
             }
-               
-            
-           
-            
-            
             
         }.padding(.top, 20)
         
@@ -101,5 +92,5 @@ struct AddReminder: View {
 }
 
 #Preview {
-    AddReminder()
+    EditReminder()
 }
