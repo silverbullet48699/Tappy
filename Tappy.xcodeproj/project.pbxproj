@@ -35,8 +35,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		AA0000000000000000000001 /* TappyWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TappyWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		194E677D3009DCFC00F68424 /* Tappy.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Tappy.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		AA0000000000000000000001 /* TappyWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = TappyWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -44,25 +44,14 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
-				TappyWidget.entitlements,
 			);
 			target = AA0000000000000000000004 /* TappyWidgetExtension */;
-		};
-		AA0000000000000000000010 /* Exceptions for "Tappy" folder in "Tappy" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Tappy.entitlements,
-			);
-			target = 194E677C3009DCFC00F68424 /* Tappy */;
 		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		194E677F3009DCFC00F68424 /* Tappy */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				AA0000000000000000000010 /* Exceptions for "Tappy" folder in "Tappy" target */,
-			);
 			path = Tappy;
 			sourceTree = "<group>";
 		};
@@ -82,14 +71,14 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		AA0000000000000000000006 /* Frameworks */ = {
+		194E677A3009DCFC00F68424 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		194E677A3009DCFC00F68424 /* Frameworks */ = {
+		AA0000000000000000000006 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -119,14 +108,6 @@
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
-
-/* Begin PBXTargetDependency section */
-		AA000000000000000000000E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = AA0000000000000000000004 /* TappyWidgetExtension */;
-			targetProxy = AA000000000000000000000D /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin PBXNativeTarget section */
 		194E677C3009DCFC00F68424 /* Tappy */ = {
@@ -216,14 +197,14 @@
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		AA0000000000000000000007 /* Resources */ = {
+		194E677B3009DCFC00F68424 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		194E677B3009DCFC00F68424 /* Resources */ = {
+		AA0000000000000000000007 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -233,13 +214,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		AA0000000000000000000005 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		194E67793009DCFC00F68424 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -247,7 +221,22 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		AA0000000000000000000005 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		AA000000000000000000000E /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = AA0000000000000000000004 /* TappyWidgetExtension */;
+			targetProxy = AA000000000000000000000D /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		194E67863009DCFC00F68424 /* Debug */ = {
@@ -446,11 +435,10 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEBUG_INFORMATION_FORMAT = dwarf;
-				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				DEVELOPMENT_TEAM = ML8TNDJ77V;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = TappyWidget;
 				INFOPLIST_FILE = TappyWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TappyWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -464,6 +452,7 @@
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -475,13 +464,12 @@
 			buildSettings = {
 				CODE_SIGN_ENTITLEMENTS = TappyWidget/TappyWidget.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
 				COPY_PHASE_STRIP = NO;
-				SWIFT_COMPILATION_MODE = wholemodule;
+				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = ML8TNDJ77V;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CFBundleDisplayName = TappyWidget;
 				INFOPLIST_FILE = TappyWidget/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = TappyWidget;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -493,6 +481,7 @@
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_COMPILATION_MODE = wholemodule;
 				SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
