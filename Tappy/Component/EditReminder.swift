@@ -88,6 +88,7 @@ struct EditReminder: View {
 
         // The reminder's name or type may have changed, so refresh what Shortcuts shows.
         TappyShortcuts.updateAppShortcutParameters()
+        Task { await NotificationScheduler.refresh() }
 
         dismiss()
     }

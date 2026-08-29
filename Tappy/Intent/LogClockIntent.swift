@@ -48,6 +48,7 @@ struct LogClockIntent: AppIntent {
         }
 
         let entry = try TappyDataManager.logClock(for: stored, clockType: clockType)
+        await NotificationScheduler.refresh()
 
         let time = entry.timestamp.formatted(date: .omitted, time: .shortened)
         let message = "\(clockType.displayName) for \(stored.ReminderName) at \(time)."

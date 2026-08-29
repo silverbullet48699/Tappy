@@ -105,6 +105,16 @@ enum TappyDataManager {
         return try context().fetch(descriptor)
     }
 
+    /// Clock entries inside a time range, earliest first.
+    @MainActor
+    static func entries(from start: Date, to end: Date) throws -> [ClockEntry] {
+        let descriptor = FetchDescriptor<ClockEntry>(
+            predicate: #Predicate { $0.timestamp >= start && $0.timestamp < end },
+            sortBy: [SortDescriptor(\.timestamp)]
+        )
+        return try context().fetch(descriptor)
+    }
+
     /// Writes the row that documents a clock in/out.
     @MainActor
     @discardableResult

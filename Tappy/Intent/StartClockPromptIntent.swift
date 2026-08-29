@@ -37,6 +37,7 @@ struct StartClockPromptIntent: LiveActivityIntent {
         guard stored.reminderType == .both else {
             let clockType = stored.resolvedClockType()
             let entry = try TappyDataManager.logClock(for: stored, clockType: clockType, source: "shortcut")
+            await NotificationScheduler.refresh()
             let message = "\(clockType.displayName) for \(stored.ReminderName) at \(entry.timestamp.formatted(date: .omitted, time: .shortened))."
             return .result(value: message, dialog: IntentDialog(stringLiteral: message))
         }
@@ -53,6 +54,7 @@ struct StartClockPromptIntent: LiveActivityIntent {
             // dropping the tap on the floor.
             let clockType = stored.resolvedClockType()
             let entry = try TappyDataManager.logClock(for: stored, clockType: clockType, source: "shortcut-fallback")
+            await NotificationScheduler.refresh()
             let message = "Live Activities are off, so Tappy logged \(clockType.displayName) for \(stored.ReminderName) at \(entry.timestamp.formatted(date: .omitted, time: .shortened))."
             return .result(value: message, dialog: IntentDialog(stringLiteral: message))
         }

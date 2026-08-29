@@ -76,6 +76,7 @@ struct AddReminder: View {
 
         // Let Shortcuts and Siri see the new reminder as a pickable parameter.
         TappyShortcuts.updateAppShortcutParameters()
+        Task { await NotificationScheduler.refresh() }
 
         createdReminder = reminder
     }

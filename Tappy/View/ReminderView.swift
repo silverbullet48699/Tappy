@@ -8,6 +8,7 @@
 import SwiftUI
 import SwiftData
 import AppIntents
+import UserNotifications
 
 
 struct ReminderView: View {
@@ -16,10 +17,15 @@ struct ReminderView: View {
 
     @State private var showingAddReminder = false
     @State private var selectedReminder: ReminderData?
+    @State private var notificationsAllowed = true
+    @State private var droppedNudges = 0
 
     var body: some View {
         NavigationStack {
             Group {
+                if !notificationsAllowed {
+                    notificationWarning
+                }
                 if reminderData.isEmpty {
                     ContentUnavailableView(
                         "Belum ada Reminder",
@@ -62,7 +68,34 @@ struct ReminderView: View {
             .sheet(item: $selectedReminder) { reminder in
                 EditReminder(reminder: reminder)
             }
+            .task { await refreshNotificationState() }
         }
+    }
+
+    /// Reminders are useless if the nudges can't be delivered, so say so plainly
+    /// rather than letting them silently never arrive.
+    private var notificationWarning: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Label("Notifications are off", systemImage: "bell.slash.fill")
+                .font(.subheadline.bold())
+            Text("Tappy can still record taps, but it can't remind you. Turn notifications on in Settings.")
+                .font(.caption)
+                .foregroundStyle(.secondary)
+            if let url = URL(string: UIApplication.openSettingsURLString) {
+                Link("Open Settings", destination: url)
+                    .font(.caption.bold())
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding()
+        .background(Color.orange.opacity(0.15))
+        .cornerRadius(12)
+        .padding(.horizontal)
+    }
+
+    private func refreshNotificationState() async {
+        notificationsAllowed = await NotificationScheduler.isAuthorized
+        droppedNudges = max(0, NotificationScheduler.lastRequestedCount - NotificationScheduler.lastScheduledCount)
     }
 
     private func reminderRow(_ reminder: ReminderData) -> some View {
@@ -89,6 +122,7 @@ struct ReminderView: View {
         context.delete(reminder)
         try? context.save()
         TappyShortcuts.updateAppShortcutParameters()
+        Task { await NotificationScheduler.refresh() }
     }
 }
 

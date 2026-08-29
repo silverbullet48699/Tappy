@@ -50,6 +50,8 @@ struct ResolveClockIntent: LiveActivityIntent {
 
         try TappyDataManager.logClock(for: reminder, clockType: clockType, source: "dynamic-island")
         await ClockActivityManager.resolve(activityID: activityID, as: clockType)
+        // The tap happened, so drop the nudges that were going to chase it.
+        await NotificationScheduler.refresh()
 
         return .result()
     }
