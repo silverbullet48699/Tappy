@@ -7,68 +7,82 @@
 
 import SwiftUI
 import SwiftData
+import AppIntents
 
 struct EditReminder: View {
-    
+
     let reminder: ReminderData
-    @Query private var reminderData: [ReminderData]
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
-    
-    
-    @State public var newName: String = ""
-    @State private var newStartTime: Date = Date()
-    @State private var newEndTime: Date = Date()
-    @State private var newDate: Date = Date()
-    @State private var newReminderType: String = ""
+
+    @State private var newName: String
+    @State private var newStartTime: Date
+    @State private var newEndTime: Date
+    @State private var newRepeatDays: Set<Weekday>
+    @State private var selectedReminderType: ReminderType
+
+    @State private var showingShortcutSetup = false
 
     init(reminder: ReminderData) {
-           self.reminder = reminder
-           _newName = State(initialValue: reminder.ReminderName)
-           _newStartTime = State(initialValue: reminder.startTime)
-           _newEndTime = State(initialValue: reminder.endTime)
-           _newDate = State(initialValue: reminder.date)
-           _selectedReminderType = State(initialValue: ReminderType(rawValue: reminder.typeReminder) ?? .clockin)
-       }
-    
+        self.reminder = reminder
+        _newName = State(initialValue: reminder.ReminderName)
+        _newStartTime = State(initialValue: reminder.startTime)
+        _newEndTime = State(initialValue: reminder.endTime)
+        _newRepeatDays = State(initialValue: reminder.repeatDays)
+        _selectedReminderType = State(initialValue: reminder.reminderType)
+    }
 
-    @State private var selectedReminderType: ReminderType = .clockin
-    
-    
+    private var canSave: Bool {
+        !newName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !newRepeatDays.isEmpty
+    }
+
     var body: some View {
-        VStack{
-            Text("Edit Tap Reminder ok")
-            
+        NavigationStack {
             ReminderForm(
                 name: $newName,
                 startTime: $newStartTime,
                 endTime: $newEndTime,
-                date: $newDate,
+                repeatDays: $newRepeatDays,
                 reminderType: $selectedReminderType
             )
-
-            
-            Button("Edit Reminder"){
-                
-                
-                reminder.ReminderName = newName
-                reminder.startTime = newStartTime
-                reminder.endTime = newEndTime
-                reminder.date = newDate
-                reminder.typeReminder = newReminderType
-                reminder.intervalTime = newEndTime.timeIntervalSince(newStartTime)
-                
-                
-                try? context.save()
-                
-                
-                dismiss()
-                
+            .navigationTitle("Edit Tap Reminder")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Cancel") { dismiss() }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button("Save") { saveReminder() }
+                        .disabled(!canSave)
+                }
+                ToolbarItem(placement: .bottomBar) {
+                    Button {
+                        showingShortcutSetup = true
+                    } label: {
+                        Label("Shortcut Setup", systemImage: "wave.3.right.circle")
+                    }
+                }
             }
-            
-        }.padding(.top, 20)
-        
-        
+            .sheet(isPresented: $showingShortcutSetup) {
+                ShortcutSetupSheet(reminder: reminder)
+            }
+        }
+    }
+
+    private func saveReminder() {
+        reminder.ReminderName = newName.trimmingCharacters(in: .whitespacesAndNewlines)
+        reminder.startTime = newStartTime
+        reminder.endTime = newEndTime
+        reminder.repeatDays = newRepeatDays
+        reminder.reminderType = selectedReminderType
+        reminder.intervalTime = newEndTime.timeIntervalSince(newStartTime)
+
+        try? context.save()
+
+        // The reminder's name or type may have changed, so refresh what Shortcuts shows.
+        TappyShortcuts.updateAppShortcutParameters()
+
+        dismiss()
     }
 }
 
@@ -78,7 +92,8 @@ struct EditReminder: View {
         intervalTime: 0,
         startTime: .now,
         endTime: .now,
-        date: .now,
-        typeReminder: "clockin"
+        repeatDays: .weekdays,
+        typeReminder: ReminderType.clockin.rawValue
     ))
+    .modelContainer(for: ReminderData.self, inMemory: true)
 }

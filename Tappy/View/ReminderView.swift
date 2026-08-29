@@ -7,95 +7,88 @@
 
 import SwiftUI
 import SwiftData
+import AppIntents
 
 
 struct ReminderView: View {
-    @Query private var reminderData: [ReminderData]
+    @Query(sort: \ReminderData.ReminderName) private var reminderData: [ReminderData]
     @Environment(\.modelContext) private var context
-    
-    @State var showingAddReminder: Bool = false
-    @State var showingEditReminder: Bool = false
-    
-    @State var selectedReminder: ReminderData?
-    
-    let columns = [
-        GridItem(.adaptive(minimum: 180, maximum: 250),spacing: 0)
-    ]
-    
+
+    @State private var showingAddReminder = false
+    @State private var selectedReminder: ReminderData?
+
     var body: some View {
-        VStack {
-            Text("Reminder").font(Font.body.bold())
-            
-            Divider()
-                .padding()
-            
-            HStack {
-                Button("Add"){
-                    showingAddReminder.toggle()
-                }.sheet(isPresented: $showingAddReminder) {
-                    AddReminder()
-                }
-                
-                
-            }
-            
-            if reminderData.isEmpty {
-                Spacer()
-                ContentUnavailableView("Belum ada Reminder", systemImage: "bell.slash")
-                Spacer()
-            } else {
-                List
-                {
-                    ForEach(reminderData) { reminder in
-                        VStack(){
-                            Text(reminder.ReminderName)
-                                .font(.headline)
-                            
-                            Button("edit") {
+        NavigationStack {
+            Group {
+                if reminderData.isEmpty {
+                    ContentUnavailableView(
+                        "Belum ada Reminder",
+                        systemImage: "bell.slash",
+                        description: Text("Add a reminder and Tappy generates a shortcut you can attach to your card.")
+                    )
+                } else {
+                    List {
+                        ForEach(reminderData) { reminder in
+                            Button {
                                 selectedReminder = reminder
-                                
-                                showingEditReminder.toggle()
-                            }.sheet(isPresented: $showingEditReminder) {
-                                EditReminder(reminder: reminder)
-                                
-                                
+                            } label: {
+                                reminderRow(reminder)
                             }
-                            
+                            .buttonStyle(.plain)
                             .swipeActions(edge: .trailing, allowsFullSwipe: true) {
                                 Button(role: .destructive) {
                                     deleteReminder(reminder)
                                 } label: {
                                     Label("Delete", systemImage: "trash")
                                 }
-                                
-                                
-                                
                             }
-                        }}
-                    
-                    
-                    
+                        }
+                    }
                 }
-                
-                
             }
-            
+            .navigationTitle("Reminder")
+            .toolbar {
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        showingAddReminder = true
+                    } label: {
+                        Label("Add", systemImage: "plus")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingAddReminder) {
+                AddReminder()
+            }
+            .sheet(item: $selectedReminder) { reminder in
+                EditReminder(reminder: reminder)
+            }
         }
-        
-        
-       
+    }
+
+    private func reminderRow(_ reminder: ReminderData) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            Text(reminder.ReminderName)
+                .font(.headline)
+            Text(reminder.scheduleSummary)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            Text("\(reminder.startTime.formatted(date: .omitted, time: .shortened)) – \(reminder.endTime.formatted(date: .omitted, time: .shortened))")
+                .font(.caption)
+                .foregroundStyle(.secondary)
         }
-    
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .contentShape(Rectangle())
+    }
+
     private func deleteReminder(_ reminder: ReminderData) {
         context.delete(reminder)
         try? context.save()
-        
-        
+        TappyShortcuts.updateAppShortcutParameters()
     }
-    
 }
-    
-    
-    #Preview {
-        ReminderView()
-    }
+
+
+#Preview {
+    ReminderView()
+        .modelContainer(for: ReminderData.self, inMemory: true)
+}

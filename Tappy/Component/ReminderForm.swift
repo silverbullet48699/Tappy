@@ -8,45 +8,51 @@
 import SwiftUI
 
 struct ReminderForm: View {
-    
-        @Binding var name: String
-        @Binding var startTime: Date
-        @Binding var endTime: Date
-        @Binding var date: Date
-        @Binding var reminderType: ReminderType
-    
-    
+
+    @Binding var name: String
+    @Binding var startTime: Date
+    @Binding var endTime: Date
+    @Binding var repeatDays: Set<Weekday>
+    @Binding var reminderType: ReminderType
+
     var body: some View {
-        Form{
-            Section(header: Text("Reminder Name:")){
-               
-                TextField(name.isEmpty ? "Enter Reminder" : "", text: $name)
+        Form {
+            Section(header: Text("Reminder Name:")) {
+                TextField("Enter Reminder", text: $name)
             }
-            
-            
-            DatePicker(
-                "Start Time", selection: $startTime, displayedComponents: [.hourAndMinute]
-               )
-            DatePicker(
-                "End Time", selection: $endTime, displayedComponents: [.hourAndMinute]
-               )
-//                let newIntervalTime = newEndTime.timeIntervalSince(newStartTime)
-//
-            DatePicker("Date", selection: $date, displayedComponents: [.date])
-            
-            
-            List{
-                Picker(selection: $reminderType, label: Text("Reminder Type")){
-                    Text("ClockIn").tag(ReminderType.clockin)
-                    Text("ClockOut").tag(ReminderType.clockout)
+
+            Section(header: Text("Time")) {
+                DatePicker("Start Time", selection: $startTime, displayedComponents: [.hourAndMinute])
+                DatePicker("End Time", selection: $endTime, displayedComponents: [.hourAndMinute])
+            }
+
+            Section(header: Text("Repeat")) {
+                WeekdayPicker(selection: $repeatDays)
+            }
+
+            Section(header: Text("Type")) {
+                Picker(selection: $reminderType, label: Text("Reminder Type")) {
+                    ForEach(ReminderType.allCases) { type in
+                        Text(type.displayName).tag(type)
+                    }
                 }
             }
-
         }
-
     }
 }
 
-//#Preview {
-//    ReminderForm(name: <#T##Binding<String>#>, startTime: <#T##Binding<Date>#>, endTime: <#T##Binding<Date>#>, date: <#T##Binding<Date>#>, reminderType: <#T##Binding<ReminderType>#>)
-//}
+#Preview {
+    @Previewable @State var name = "Apple Academy"
+    @Previewable @State var start = Date()
+    @Previewable @State var end = Date()
+    @Previewable @State var days: Set<Weekday> = .weekdays
+    @Previewable @State var type: ReminderType = .clockin
+
+    return ReminderForm(
+        name: $name,
+        startTime: $start,
+        endTime: $end,
+        repeatDays: $days,
+        reminderType: $type
+    )
+}

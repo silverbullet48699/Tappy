@@ -7,14 +7,18 @@
 
 import SwiftUI
 import SwiftData
+import AppIntents
 
 @main
 struct TappyApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
-            
+                .task {
+                    // Keep the reminder list Shortcuts offers in sync on launch.
+                    TappyShortcuts.updateAppShortcutParameters()
+                }
         }
-        .modelContainer(for: ReminderData.self)
+        .modelContainer(TappyDataManager.sharedContainer)
     }
 }
