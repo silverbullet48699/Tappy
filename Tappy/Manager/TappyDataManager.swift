@@ -44,11 +44,11 @@ enum TappyDataManager {
     /// Writes the row that documents a clock in/out.
     @MainActor
     @discardableResult
-    static func logClock(for reminder: ReminderData, type: ReminderType, at date: Date = Date(), source: String = "shortcut") throws -> ClockEntry {
+    static func logClock(for reminder: ReminderData, clockType: ClockType, at date: Date = Date(), source: String = "shortcut") throws -> ClockEntry {
         let entry = ClockEntry(
             reminderID: reminder.id,
             reminderName: reminder.ReminderName,
-            typeReminder: type.rawValue,
+            clockType: clockType,
             timestamp: date,
             source: source
         )

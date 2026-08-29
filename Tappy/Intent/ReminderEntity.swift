@@ -17,15 +17,17 @@ struct ReminderEntity: AppEntity, Identifiable {
     var id: UUID
     @Property(title: "Name") var name: String
     @Property(title: "Schedule") var scheduleSummary: String
+    @Property(title: "Windows") var windowSummary: String
     var reminderType: ReminderType
 
-    init(id: UUID, name: String, scheduleSummary: String, reminderType: ReminderType) {
+    init(id: UUID, name: String, scheduleSummary: String, windowSummary: String, reminderType: ReminderType) {
         // Plain stored properties first: assigning through the @Property wrappers
         // touches `self`, so everything else must already be initialized.
         self.id = id
         self.reminderType = reminderType
         self.name = name
         self.scheduleSummary = scheduleSummary
+        self.windowSummary = windowSummary
     }
 
     init(reminder: ReminderData) {
@@ -33,6 +35,7 @@ struct ReminderEntity: AppEntity, Identifiable {
             id: reminder.id,
             name: reminder.ReminderName,
             scheduleSummary: reminder.scheduleSummary,
+            windowSummary: reminder.windowSummary,
             reminderType: reminder.reminderType
         )
     }
@@ -40,7 +43,7 @@ struct ReminderEntity: AppEntity, Identifiable {
     var displayRepresentation: DisplayRepresentation {
         DisplayRepresentation(
             title: "\(name)",
-            subtitle: "\(scheduleSummary)",
+            subtitle: "\(scheduleSummary) · \(windowSummary)",
             image: .init(systemName: "wave.3.right.circle.fill")
         )
     }

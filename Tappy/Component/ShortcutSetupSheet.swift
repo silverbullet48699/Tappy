@@ -22,7 +22,8 @@ struct ShortcutSetupSheet: View {
     private var intent: LogClockIntent {
         let intent = LogClockIntent()
         intent.reminder = ReminderEntity(reminder: reminder)
-        intent.action = reminder.reminderType
+        // Left unset for a "both" reminder so one tag can serve morning and evening.
+        intent.action = reminder.reminderType == .both ? nil : reminder.resolvedClockType()
         return intent
     }
 
@@ -56,6 +57,13 @@ struct ShortcutSetupSheet: View {
                         instruction(2, "Choose **NFC**, then **Scan** and hold your card to the top of your iPhone.")
                         instruction(3, "Add the **Log Clock** action from Tappy.")
                         instruction(4, "Pick **\(reminder.ReminderName)** as the reminder, then turn off *Ask Before Running*.")
+
+                        if reminder.reminderType == .both {
+                            Text("Leave **Action** empty and one tag covers both windows — Tappy logs a clock in during the morning window and a clock out during the evening one.")
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                                .padding(.leading, 34)
+                        }
                     }
 
                     VStack(spacing: 12) {
@@ -88,15 +96,18 @@ struct ShortcutSetupSheet: View {
     }
 
     private var summaryCard: some View {
-        VStack(alignment: .leading, spacing: 6) {
+        VStack(alignment: .leading, spacing: 8) {
             Text(reminder.ReminderName)
                 .font(.headline)
-            Text(reminder.scheduleSummary)
+            Text("\(reminder.scheduleSummary) · \(reminder.intervalSummary)")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            Text("\(reminder.startTime.formatted(date: .omitted, time: .shortened)) – \(reminder.endTime.formatted(date: .omitted, time: .shortened))")
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+
+            ForEach(reminder.activeWindows, id: \.clockType) { entry in
+                Label("\(entry.clockType.displayName)  \(entry.window.summary)", systemImage: entry.clockType.symbolName)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding()
@@ -126,10 +137,10 @@ struct ShortcutSetupSheet: View {
 #Preview {
     ShortcutSetupSheet(reminder: ReminderData(
         name: "Apple Academy",
-        intervalTime: 0,
-        startTime: .now,
-        endTime: .now,
-        repeatDays: .weekdays,
-        typeReminder: ReminderType.clockin.rawValue
+        type: .both,
+        clockInWindow: .defaultClockIn,
+        clockOutWindow: .defaultClockOut,
+        intervalMinutes: 15,
+        repeatDays: .weekdays
     ))
 }

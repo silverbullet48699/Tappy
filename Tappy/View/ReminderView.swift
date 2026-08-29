@@ -66,15 +66,20 @@ struct ReminderView: View {
     }
 
     private func reminderRow(_ reminder: ReminderData) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
             Text(reminder.ReminderName)
                 .font(.headline)
-            Text(reminder.scheduleSummary)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
-            Text("\(reminder.startTime.formatted(date: .omitted, time: .shortened)) – \(reminder.endTime.formatted(date: .omitted, time: .shortened))")
+
+            Text("\(reminder.scheduleSummary) · \(reminder.intervalSummary)")
                 .font(.caption)
                 .foregroundStyle(.secondary)
+
+            // One line per window, so a "both" reminder reads at a glance.
+            ForEach(reminder.activeWindows, id: \.clockType) { entry in
+                Label(entry.window.summary, systemImage: entry.clockType.symbolName)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())

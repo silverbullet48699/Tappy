@@ -9,12 +9,12 @@
 import AppIntents
 import Foundation
 
-extension ReminderType: AppEnum {
+extension ClockType: AppEnum {
     nonisolated static var typeDisplayRepresentation: TypeDisplayRepresentation { "Clock Action" }
 
-    nonisolated static var caseDisplayRepresentations: [ReminderType: DisplayRepresentation] { [
-        .clockin: DisplayRepresentation(title: "Clock In", image: .init(systemName: "arrow.right.to.line")),
-        .clockout: DisplayRepresentation(title: "Clock Out", image: .init(systemName: "arrow.left.to.line"))
+    nonisolated static var caseDisplayRepresentations: [ClockType: DisplayRepresentation] { [
+        .clockIn: DisplayRepresentation(title: "Clock In", image: .init(systemName: "arrow.right.to.line")),
+        .clockOut: DisplayRepresentation(title: "Clock Out", image: .init(systemName: "arrow.left.to.line"))
     ] }
 }
 
@@ -32,8 +32,11 @@ struct LogClockIntent: AppIntent {
     @Parameter(title: "Reminder")
     var reminder: ReminderEntity
 
-    @Parameter(title: "Action", description: "Leave empty to use the reminder's own type.")
-    var action: ReminderType?
+    @Parameter(
+        title: "Action",
+        description: "Leave empty and Tappy picks Clock In or Clock Out based on which window you're in."
+    )
+    var action: ClockType?
 
     static var parameterSummary: some ParameterSummary {
         Summary("Log \(\.$action) for \(\.$reminder)")
@@ -45,11 +48,18 @@ struct LogClockIntent: AppIntent {
             throw LogClockError.reminderNotFound(reminder.name)
         }
 
-        let type = action ?? stored.reminderType
-        let entry = try TappyDataManager.logClock(for: stored, type: type)
+        // With one NFC tag on a "both" reminder, the time of day decides which
+        // half of the day this tap belongs to.
+        let clockType = action ?? stored.resolvedClockType()
+
+        guard stored.reminderType.covers(clockType) else {
+            throw LogClockError.actionNotCovered(reminder: stored.ReminderName, action: clockType.displayName)
+        }
+
+        let entry = try TappyDataManager.logClock(for: stored, clockType: clockType)
 
         let time = entry.timestamp.formatted(date: .omitted, time: .shortened)
-        let message = "\(type.displayName) for \(stored.ReminderName) at \(time)."
+        let message = "\(clockType.displayName) for \(stored.ReminderName) at \(time)."
 
         return .result(value: message, dialog: IntentDialog(stringLiteral: message))
     }
@@ -57,11 +67,14 @@ struct LogClockIntent: AppIntent {
 
 enum LogClockError: Error, CustomLocalizedStringResourceConvertible {
     case reminderNotFound(String)
+    case actionNotCovered(reminder: String, action: String)
 
     var localizedStringResource: LocalizedStringResource {
         switch self {
         case .reminderNotFound(let name):
             return "The reminder \(name) no longer exists in Tappy. Open Tappy and pick a reminder again."
+        case .actionNotCovered(let reminder, let action):
+            return "\(reminder) isn't set up for \(action). Change its type in Tappy, or pick a different action."
         }
     }
 }

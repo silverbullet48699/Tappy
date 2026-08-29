@@ -15,35 +15,42 @@ struct EditReminder: View {
     @Environment(\.modelContext) private var context
     @Environment(\.dismiss) private var dismiss
 
+    @State private var newType: ReminderType
     @State private var newName: String
-    @State private var newStartTime: Date
-    @State private var newEndTime: Date
+    @State private var newClockInWindow: ClockWindow
+    @State private var newClockOutWindow: ClockWindow
+    @State private var newInterval: ReminderInterval
     @State private var newRepeatDays: Set<Weekday>
-    @State private var selectedReminderType: ReminderType
 
     @State private var showingShortcutSetup = false
 
     init(reminder: ReminderData) {
         self.reminder = reminder
+        _newType = State(initialValue: reminder.reminderType)
         _newName = State(initialValue: reminder.ReminderName)
-        _newStartTime = State(initialValue: reminder.startTime)
-        _newEndTime = State(initialValue: reminder.endTime)
+        _newClockInWindow = State(initialValue: reminder.clockInWindow)
+        _newClockOutWindow = State(initialValue: reminder.clockOutWindow)
+        _newInterval = State(initialValue: reminder.interval)
         _newRepeatDays = State(initialValue: reminder.repeatDays)
-        _selectedReminderType = State(initialValue: reminder.reminderType)
     }
 
     private var canSave: Bool {
-        !newName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty && !newRepeatDays.isEmpty
+        guard !newName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              !newRepeatDays.isEmpty else { return false }
+        if newType.covers(.clockIn) && !newClockInWindow.isValid { return false }
+        if newType.covers(.clockOut) && !newClockOutWindow.isValid { return false }
+        return true
     }
 
     var body: some View {
         NavigationStack {
             ReminderForm(
+                reminderType: $newType,
                 name: $newName,
-                startTime: $newStartTime,
-                endTime: $newEndTime,
-                repeatDays: $newRepeatDays,
-                reminderType: $selectedReminderType
+                clockInWindow: $newClockInWindow,
+                clockOutWindow: $newClockOutWindow,
+                interval: $newInterval,
+                repeatDays: $newRepeatDays
             )
             .navigationTitle("Edit Tap Reminder")
             .navigationBarTitleDisplayMode(.inline)
@@ -70,12 +77,12 @@ struct EditReminder: View {
     }
 
     private func saveReminder() {
+        reminder.reminderType = newType
         reminder.ReminderName = newName.trimmingCharacters(in: .whitespacesAndNewlines)
-        reminder.startTime = newStartTime
-        reminder.endTime = newEndTime
+        reminder.clockInWindow = newClockInWindow
+        reminder.clockOutWindow = newClockOutWindow
+        reminder.interval = newInterval
         reminder.repeatDays = newRepeatDays
-        reminder.reminderType = selectedReminderType
-        reminder.intervalTime = newEndTime.timeIntervalSince(newStartTime)
 
         try? context.save()
 
@@ -89,11 +96,11 @@ struct EditReminder: View {
 #Preview {
     EditReminder(reminder: ReminderData(
         name: "Preview Reminder",
-        intervalTime: 0,
-        startTime: .now,
-        endTime: .now,
-        repeatDays: .weekdays,
-        typeReminder: ReminderType.clockin.rawValue
+        type: .both,
+        clockInWindow: .defaultClockIn,
+        clockOutWindow: .defaultClockOut,
+        intervalMinutes: 15,
+        repeatDays: .weekdays
     ))
     .modelContainer(for: ReminderData.self, inMemory: true)
 }
