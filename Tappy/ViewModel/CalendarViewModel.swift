@@ -22,6 +22,8 @@ final class CalendarViewModel {
     private(set) var entries: [ClockEntry] = []
     /// Days in the visible month that have at least one recorded tap.
     private(set) var recordedDaysThisMonth: Set<Date> = []
+    /// Reminder ids marked off for the selected day.
+    private(set) var absentReminderIDs: Set<UUID> = []
 
     private var context: ModelContext?
     private let calendar: Calendar
@@ -52,7 +54,8 @@ final class CalendarViewModel {
                 reminder: reminder,
                 // First tap in, last tap out — the readings that bound the day.
                 clockIn: mine.first { $0.clockType == .clockIn },
-                clockOut: mine.last { $0.clockType == .clockOut }
+                clockOut: mine.last { $0.clockType == .clockOut },
+                isAbsent: absentReminderIDs.contains(reminder.id)
             )
         }
     }
@@ -70,10 +73,55 @@ final class CalendarViewModel {
 
     var daySummary: String {
         if scheduledReminders.isEmpty && entries.isEmpty { return "Nothing scheduled" }
-        let done = dayStatuses.filter(\.isComplete).count
-        let total = scheduledReminders.count
-        if total == 0 { return "\(entries.count) tap\(entries.count == 1 ? "" : "s") recorded" }
-        return "\(done) of \(total) reminder\(total == 1 ? "" : "s") complete"
+        if scheduledReminders.isEmpty { return "\(entries.count) tap\(entries.count == 1 ? "" : "s") recorded" }
+
+        // Days off don't count against you, so they leave the denominator.
+        let expected = dayStatuses.filter { !$0.isAbsent }
+        let daysOff = dayStatuses.count - expected.count
+        if expected.isEmpty { return daysOff == 1 ? "Day off" : "Day off (\(daysOff) reminders)" }
+
+        let done = expected.filter(\.isComplete).count
+        var text = "\(done) of \(expected.count) reminder\(expected.count == 1 ? "" : "s") complete"
+        if daysOff > 0 { text += " · \(daysOff) off" }
+        return text
+    }
+
+    // MARK: - Absences
+
+    func isAbsent(_ reminder: ReminderData) -> Bool {
+        absentReminderIDs.contains(reminder.id)
+    }
+
+    /// Marks the selected day off (or back on) for one reminder, then reschedules
+    /// so the nudges disappear immediately.
+    ///
+    /// Goes through the injected context rather than the shared container, so a
+    /// preview or test never writes into the real store.
+    func setAbsent(_ absent: Bool, for reminder: ReminderData) {
+        guard let context else { return }
+        let dayStart = calendar.startOfDay(for: selectedDate)
+        let reminderID = reminder.id
+
+        do {
+            let descriptor = FetchDescriptor<ReminderAbsence>(
+                predicate: #Predicate { $0.reminderID == reminderID && $0.dayStart == dayStart }
+            )
+            let existing = try context.fetch(descriptor).first
+
+            if absent {
+                guard existing == nil else { return }
+                context.insert(ReminderAbsence(reminderID: reminderID, dayStart: dayStart))
+            } else {
+                guard let existing else { return }
+                context.delete(existing)
+            }
+            try context.save()
+
+            reload()
+            Task { await NotificationScheduler.refresh() }
+        } catch {
+            print("[Tappy] Could not update absence: \(error)")
+        }
     }
 
     // MARK: - Fetching
@@ -96,11 +144,17 @@ final class CalendarViewModel {
             ))
             scheduledReminders = all.filter { $0.repeats(on: selectedDate, calendar: calendar) }
 
+            let absenceDescriptor = FetchDescriptor<ReminderAbsence>(
+                predicate: #Predicate { $0.dayStart >= start && $0.dayStart < end }
+            )
+            absentReminderIDs = Set(try context.fetch(absenceDescriptor).map(\.reminderID))
+
             recordedDaysThisMonth = try fetchRecordedDays(in: selectedDate)
         } catch {
             print("[Tappy] Calendar fetch failed: \(error)")
             entries = []
             scheduledReminders = []
+            absentReminderIDs = []
             recordedDaysThisMonth = []
         }
     }
@@ -129,6 +183,8 @@ struct ReminderDayStatus: Identifiable {
     let reminder: ReminderData
     let clockIn: ClockEntry?
     let clockOut: ClockEntry?
+    /// The user said they aren't going in that day.
+    let isAbsent: Bool
 
     var id: UUID { reminder.id }
 
@@ -142,11 +198,13 @@ struct ReminderDayStatus: Identifiable {
         expected.filter { entry(for: $0) != nil }.count
     }
 
-    var isComplete: Bool { recordedCount == expected.count }
+    /// A day off is never "incomplete" — there was nothing to do.
+    var isComplete: Bool { isAbsent || recordedCount == expected.count }
 
-    /// "Complete", "Clock Out missing", "Nothing recorded"
+    /// "Day off", "Complete", "Clock Out missing", "Nothing recorded"
     var statusText: String {
-        if isComplete { return "Complete" }
+        if isAbsent { return "Day off" }
+        if recordedCount == expected.count { return "Complete" }
         if recordedCount == 0 { return "Nothing recorded" }
         let missing = expected.filter { entry(for: $0) == nil }.map(\.displayName)
         return "\(missing.joined(separator: " and ")) missing"

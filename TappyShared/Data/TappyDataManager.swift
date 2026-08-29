@@ -15,7 +15,7 @@ enum TappyDataManager {
     /// button tapped in the Dynamic Island writes where the app can read it.
     static let appGroupID = "group.stephanie.Tappy"
 
-    static let schema = Schema([ReminderData.self, ClockEntry.self])
+    static let schema = Schema([ReminderData.self, ClockEntry.self, ReminderAbsence.self])
 
     /// Where the shared store lives inside the App Group.
     ///
@@ -111,6 +111,17 @@ enum TappyDataManager {
         let descriptor = FetchDescriptor<ClockEntry>(
             predicate: #Predicate { $0.timestamp >= start && $0.timestamp < end },
             sortBy: [SortDescriptor(\.timestamp)]
+        )
+        return try context().fetch(descriptor)
+    }
+
+    // MARK: - Absences
+
+    /// Days marked off inside a range.
+    @MainActor
+    static func absences(from start: Date, to end: Date) throws -> [ReminderAbsence] {
+        let descriptor = FetchDescriptor<ReminderAbsence>(
+            predicate: #Predicate { $0.dayStart >= start && $0.dayStart < end }
         )
         return try context().fetch(descriptor)
     }

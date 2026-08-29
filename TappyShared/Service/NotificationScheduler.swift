@@ -74,15 +74,19 @@ enum NotificationScheduler {
 
         let reminders: [ReminderData]
         let tapped: Set<TapKey>
+        let absent: Set<DayKey>
+        let windowStart = calendar.startOfDay(for: now)
+        let windowEnd = now.addingTimeInterval(horizon)
         do {
             reminders = try TappyDataManager.allReminders()
-            tapped = try alreadyTapped(from: calendar.startOfDay(for: now), to: now.addingTimeInterval(horizon), calendar: calendar)
+            tapped = try alreadyTapped(from: windowStart, to: windowEnd, calendar: calendar)
+            absent = try daysOff(from: windowStart, to: windowEnd, calendar: calendar)
         } catch {
             print("[Tappy] Could not read reminders while scheduling: \(error)")
             return
         }
 
-        let wanted = plannedNudges(for: reminders, tapped: tapped, now: now, calendar: calendar)
+        let wanted = plannedNudges(for: reminders, tapped: tapped, absent: absent, now: now, calendar: calendar)
             .sorted { $0.fireDate < $1.fireDate }
 
         lastRequestedCount = wanted.count
@@ -116,6 +120,7 @@ enum NotificationScheduler {
     static func plannedNudges(
         for reminders: [ReminderData],
         tapped: Set<TapKey>,
+        absent: Set<DayKey> = [],
         now: Date,
         calendar: Calendar
     ) -> [Nudge] {
@@ -127,6 +132,9 @@ enum NotificationScheduler {
             guard let day = calendar.date(byAdding: .day, value: offset, to: calendar.startOfDay(for: now)) else { continue }
 
             for reminder in reminders where reminder.repeats(on: day, calendar: calendar) {
+                // A day marked off gets no nudges at all, for either window.
+                if absent.contains(DayKey(reminderID: reminder.id, day: day, calendar: calendar)) { continue }
+
                 for (clockType, window) in reminder.activeWindows {
                     // Already clocked in for this day? Then stop nagging about it.
                     if tapped.contains(TapKey(reminderID: reminder.id, clockType: clockType, day: day, calendar: calendar)) {
@@ -156,6 +164,11 @@ enum NotificationScheduler {
         return result
     }
 
+    static func daysOff(from start: Date, to end: Date, calendar: Calendar) throws -> Set<DayKey> {
+        let absences = try TappyDataManager.absences(from: start, to: end)
+        return Set(absences.map { DayKey(reminderID: $0.reminderID, day: $0.dayStart, calendar: calendar) })
+    }
+
     static func alreadyTapped(from start: Date, to end: Date, calendar: Calendar) throws -> Set<TapKey> {
         let entries = try TappyDataManager.entries(from: start, to: end)
         return Set(entries.map {
@@ -168,6 +181,17 @@ enum NotificationScheduler {
 
 /// Identifies "this reminder's clock-in for this day", so a recorded tap can
 /// suppress the nudges that were going to chase it.
+/// Identifies "this reminder on this day", regardless of which tap.
+struct DayKey: Hashable {
+    let reminderID: UUID
+    let dayStart: Date
+
+    init(reminderID: UUID, day: Date, calendar: Calendar) {
+        self.reminderID = reminderID
+        self.dayStart = calendar.startOfDay(for: day)
+    }
+}
+
 struct TapKey: Hashable {
     let reminderID: UUID
     let clockType: ClockType

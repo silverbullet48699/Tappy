@@ -88,7 +88,9 @@ struct CalenderIView: View {
                 .frame(maxWidth: .infinity)
             } else {
                 ForEach(viewModel.dayStatuses) { status in
-                    DayStatusCard(status: status)
+                    DayStatusCard(status: status) { absent in
+                        viewModel.setAbsent(absent, for: status.reminder)
+                    }
                 }
 
                 if !viewModel.unscheduledEntries.isEmpty {
@@ -112,6 +114,17 @@ struct CalenderIView: View {
 /// One reminder's day at a glance: what was due, and what actually got tapped.
 struct DayStatusCard: View {
     let status: ReminderDayStatus
+    var onAbsenceChange: (Bool) -> Void
+
+    private var statusColor: Color {
+        if status.isAbsent { return .secondary }
+        return status.isComplete ? .green : .orange
+    }
+
+    private var statusIcon: String {
+        if status.isAbsent { return "moon.zzz.fill" }
+        return status.isComplete ? "checkmark.circle.fill" : "exclamationmark.circle"
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 10) {
@@ -119,10 +132,17 @@ struct DayStatusCard: View {
                 Text(status.reminder.ReminderName)
                     .font(.headline)
                 Spacer()
-                Label(status.statusText, systemImage: status.isComplete ? "checkmark.circle.fill" : "exclamationmark.circle")
+                Label(status.statusText, systemImage: statusIcon)
                     .font(.caption)
-                    .foregroundStyle(status.isComplete ? .green : .orange)
+                    .foregroundStyle(statusColor)
             }
+
+            Toggle(isOn: Binding(get: { status.isAbsent }, set: onAbsenceChange)) {
+                Text("Absent — no reminders this day")
+                    .font(.subheadline)
+            }
+            .toggleStyle(.switch)
+            .controlSize(.mini)
 
             ForEach(status.expected, id: \.self) { clockType in
                 HStack {
@@ -146,6 +166,7 @@ struct DayStatusCard: View {
                     .foregroundStyle(.secondary)
             }
         }
+        .opacity(status.isAbsent ? 0.55 : 1)
         .padding()
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(Color(.secondarySystemBackground))

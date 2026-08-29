@@ -36,6 +36,7 @@ struct ReminderDetailSheet: View {
                         ForEach(viewModel.dayStatuses) { status in
                             reminderBlock(status)
                         }
+                        .animation(.default, value: viewModel.absentReminderIDs)
                         historySection
                     }
                 }
@@ -65,15 +66,27 @@ struct ReminderDetailSheet: View {
                 Text(status.reminder.ReminderName)
                     .font(.headline)
                 Spacer()
-                Label(status.statusText, systemImage: status.isComplete ? "checkmark.circle.fill" : "exclamationmark.circle")
-                    .font(.caption)
-                    .foregroundStyle(status.isComplete ? .green : .orange)
+                Label(
+                    status.statusText,
+                    systemImage: status.isAbsent ? "moon.zzz.fill" : (status.isComplete ? "checkmark.circle.fill" : "exclamationmark.circle")
+                )
+                .font(.caption)
+                .foregroundStyle(status.isAbsent ? Color.secondary : (status.isComplete ? Color.green : Color.orange))
+            }
+
+            Toggle(isOn: Binding(
+                get: { status.isAbsent },
+                set: { viewModel.setAbsent($0, for: status.reminder) }
+            )) {
+                Text("Absent — no reminders this day")
+                    .font(.subheadline)
             }
 
             // Only the taps this reminder actually expects get a card.
             ForEach(status.expected, id: \.self) { clockType in
                 ClockCard(clockType: clockType, date: status.entry(for: clockType)?.timestamp)
             }
+            .opacity(status.isAbsent ? 0.55 : 1)
 
             if let worked = status.workedSummary {
                 Text("Total \(worked)")
