@@ -9,15 +9,6 @@
 import AppIntents
 import Foundation
 
-extension ClockType: AppEnum {
-    nonisolated static var typeDisplayRepresentation: TypeDisplayRepresentation { "Clock Action" }
-
-    nonisolated static var caseDisplayRepresentations: [ClockType: DisplayRepresentation] { [
-        .clockIn: DisplayRepresentation(title: "Clock In", image: .init(systemName: "arrow.right.to.line")),
-        .clockOut: DisplayRepresentation(title: "Clock Out", image: .init(systemName: "arrow.left.to.line"))
-    ] }
-}
-
 struct LogClockIntent: AppIntent {
 
     static var title: LocalizedStringResource = "Log Clock In or Out"

@@ -3,7 +3,7 @@
 //  Tappy
 //
 //  Shown right after a reminder is saved. The reminder now exists as a parameter
-//  of Tappy's "Log Clock" action, so this hands the user that shortcut and walks
+//  of Tappy's clock actions, so this hands the user that shortcut and walks
 //  them through attaching it to an NFC tag themselves.
 //
 
@@ -19,12 +19,25 @@ struct ShortcutSetupSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.openURL) private var openURL
 
-    private var intent: LogClockIntent {
+    /// A "both" reminder can't tell the two taps apart from the card alone, so its
+    /// shortcut asks in the Dynamic Island. Single-action reminders log directly.
+    private var usesPrompt: Bool { reminder.reminderType == .both }
+
+    private var promptIntent: StartClockPromptIntent {
+        let intent = StartClockPromptIntent()
+        intent.reminder = ReminderEntity(reminder: reminder)
+        return intent
+    }
+
+    private var logIntent: LogClockIntent {
         let intent = LogClockIntent()
         intent.reminder = ReminderEntity(reminder: reminder)
-        // Left unset for a "both" reminder so one tag can serve morning and evening.
-        intent.action = reminder.reminderType == .both ? nil : reminder.resolvedClockType()
+        intent.action = reminder.resolvedClockType()
         return intent
+    }
+
+    private var actionName: String {
+        usesPrompt ? "Ask Clock In or Clock Out" : "Log Clock In or Out"
     }
 
     var body: some View {
@@ -40,14 +53,20 @@ struct ShortcutSetupSheet: View {
                         Text("Shortcut ready")
                             .font(.title2.bold())
 
-                        Text("“\(reminder.ReminderName)” is now available in the Shortcuts app as a **Log Clock** action. Attach it to your card and every tap gets documented.")
+                        Text(usesPrompt
+                             ? "“\(reminder.ReminderName)” is now in the Shortcuts app as an **\(actionName)** action. Tap your card and Tappy asks — in the Dynamic Island — which one it was."
+                             : "“\(reminder.ReminderName)” is now in the Shortcuts app as a **\(actionName)** action. Attach it to your card and every tap gets documented.")
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
 
                     summaryCard
 
-                    SiriTipView(intent: intent)
+                    if usesPrompt {
+                        SiriTipView(intent: promptIntent)
+                    } else {
+                        SiriTipView(intent: logIntent)
+                    }
 
                     VStack(alignment: .leading, spacing: 12) {
                         Text("Attach it to your card")
@@ -55,11 +74,11 @@ struct ShortcutSetupSheet: View {
 
                         instruction(1, "Open Shortcuts, go to **Automation**, and tap **+**.")
                         instruction(2, "Choose **NFC**, then **Scan** and hold your card to the top of your iPhone.")
-                        instruction(3, "Add the **Log Clock** action from Tappy.")
+                        instruction(3, "Add the **\(actionName)** action from Tappy.")
                         instruction(4, "Pick **\(reminder.ReminderName)** as the reminder, then turn off *Ask Before Running*.")
 
-                        if reminder.reminderType == .both {
-                            Text("Leave **Action** empty and one tag covers both windows — Tappy logs a clock in during the morning window and a clock out during the evening one.")
+                        if usesPrompt {
+                            Text("Your building uses the same card on both readers, so Tappy can't tell the taps apart on its own. After each tap it raises a Dynamic Island prompt with **Clock In** and **Clock Out** — the likelier one for the time of day is highlighted, and either is a single tap.")
                                 .font(.footnote)
                                 .foregroundStyle(.secondary)
                                 .padding(.leading, 34)

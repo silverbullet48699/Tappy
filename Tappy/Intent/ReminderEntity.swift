@@ -49,7 +49,17 @@ struct ReminderEntity: AppEntity, Identifiable {
     }
 }
 
-struct ReminderEntityQuery: EntityQuery {
+/// `EntityStringQuery` rather than plain `EntityQuery` so Siri and the Shortcuts
+/// search field can resolve a reminder the user *names* ("tap Grab"), not just one
+/// they pick from a list.
+struct ReminderEntityQuery: EntityStringQuery {
+
+    @MainActor
+    func entities(matching string: String) async throws -> [ReminderEntity] {
+        try TappyDataManager.allReminders()
+            .filter { $0.ReminderName.localizedStandardContains(string) }
+            .map(ReminderEntity.init(reminder:))
+    }
 
     @MainActor
     func entities(for identifiers: [ReminderEntity.ID]) async throws -> [ReminderEntity] {
